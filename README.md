@@ -35,7 +35,8 @@ A modern web application built with React frontend and Node.js backend for user 
 
 1. **Clone and navigate to the project**
    ```bash
-   cd your-project-directory
+   git clone https://github.com/AashaniSamarakoon/Product_Managment.git
+   cd Product_Managment
    ```
 
 2. **Install frontend dependencies**
@@ -50,134 +51,101 @@ A modern web application built with React frontend and Node.js backend for user 
    cd ..
    ```
 
-4. **Start the development servers**
+### Running the Application
 
-   **Terminal 1 - Backend:**
+1. **Start the backend server**
    ```bash
    cd backend
-   npm run dev
+   npm start
    ```
+   Backend will run on http://localhost:5001
 
-   **Terminal 2 - Frontend:**
+2. **Start the frontend (in a new terminal)**
    ```bash
    npm run dev
    ```
-
-5. **Open your browser**
-   - Frontend: http://localhost:5173
-   - Backend API: http://localhost:5000
+   Frontend will run on http://localhost:3000
 
 ## Demo Credentials
 
-For testing, use these credentials:
+For testing purposes, you can use:
 - **Email**: admin@example.com
 - **Password**: password
-
-Or register a new account using the registration form.
 
 ## API Endpoints
 
 ### Authentication
-- `POST /api/auth/login` - User login
 - `POST /api/auth/register` - User registration
-- `GET /api/auth/profile` - Get user profile
+- `POST /api/auth/login` - User login
+- `GET /api/auth/profile` - Get user profile (protected)
 
 ### Products
-- `GET /api/products` - Get user's products
-- `POST /api/products` - Create new product
-- `PUT /api/products/:id` - Update product
-- `DELETE /api/products/:id` - Delete product
+- `GET /api/products` - Get user's products (protected)
+- `POST /api/products` - Create new product (protected)
+- `PUT /api/products/:id` - Update product (protected)
+- `DELETE /api/products/:id` - Delete product (protected)
 
 ## Project Structure
 
 ```
-├── src/                    # React frontend
+├── src/                    # Frontend React application
 │   ├── components/         # React components
-│   │   ├── LoginForm.jsx
-│   │   ├── RegisterForm.jsx
-│   │   ├── ProductList.jsx
-│   │   └── ProtectedRoute.jsx
 │   ├── contexts/          # React contexts
-│   │   └── AuthContext.jsx
-│   ├── App.jsx            # Main app component
-│   └── index.css          # Tailwind CSS imports
-├── backend/               # Node.js backend
+│   └── assets/            # Static assets
+├── backend/               # Backend Node.js application
 │   ├── routes/           # API routes
-│   │   ├── auth.js       # Authentication routes
-│   │   └── products.js   # Product CRUD routes
 │   ├── middleware/       # Custom middleware
-│   │   └── auth.js       # JWT authentication middleware
-│   ├── server.js         # Express server setup
-│   └── .env              # Environment variables
-└── README.md
+│   └── uploads/          # File uploads
+├── public/               # Public static files
+└── package.json          # Frontend dependencies
 ```
+
+## Key Features Implemented
+
+### Authentication System
+- JWT-based authentication
+- Protected routes
+- User registration and login
+- Password hashing with bcryptjs
+
+### Product Management
+- Create, read, update, delete products
+- Image upload functionality
+- Category-based filtering
+- Real-time UI updates
+
+### Modern UI/UX
+- Responsive design with Tailwind CSS
+- Interactive forms with validation
+- Loading states and error handling
+- Modern gradient designs and animations
+
+### Security Features
+- CORS configuration
+- Rate limiting
+- Helmet security headers
+- Input validation
 
 ## Development
 
-### Frontend Development
-```bash
-npm run dev          # Start development server
-npm run build        # Build for production
-npm run preview      # Preview production build
-```
+### Available Scripts
 
-### Backend Development
-```bash
-cd backend
-npm run dev          # Start with nodemon (auto-restart)
-npm start            # Start production server
-```
+#### Frontend
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run preview` - Preview production build
 
-## Features Details
-
-### Authentication
-- Secure JWT-based authentication
-- Password hashing with bcryptjs
-- Protected routes that require authentication
-- Automatic token verification on app load
-- Proper error handling and user feedback
-
-### Product Management
-- Create products with title and description
-- View all products in a responsive grid layout
-- Edit existing products with pre-filled forms
-- Delete products with confirmation dialog
-- Form validation on both client and server side
-- Real-time success/error notifications
-
-### User Interface
-- Modern, responsive design with Tailwind CSS
-- Loading states for better user experience
-- Form validation with error messages
-- Success/error notifications
-- Clean and intuitive user interface
-
-## Security Features
-
-- JWT tokens for secure authentication
-- Password hashing with salt
-- Rate limiting to prevent abuse
-- CORS configuration for cross-origin requests
-- Input validation and sanitization
-- Protected API routes
-
-## Customization
-
-The application is designed to be easily extensible:
-
-1. **Database Integration**: Replace in-memory storage with your preferred database
-2. **Additional Fields**: Add more product fields as needed
-3. **File Uploads**: Extend to support image uploads for products
-4. **User Roles**: Implement role-based access control
-5. **Search & Filter**: Add search and filtering capabilities
+#### Backend
+- `npm start` - Start backend server
+- `npm run dev` - Start with nodemon for development
 
 ## Contributing
 
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Test thoroughly
-5. Submit a pull request
+1. Fork the project
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
 
 ## License
 
