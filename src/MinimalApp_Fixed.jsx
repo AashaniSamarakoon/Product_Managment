@@ -20,12 +20,22 @@ const MinimalApp = () => {
   });  // Products state
   const [products, setProducts] = useState([]);
   const [showAddForm, setShowAddForm] = useState(false);
-  const [newProduct, setNewProduct] = useState({ title: '', description: '', imageFile: null, category: 'Electronics' });
+  const [newProduct, setNewProduct] = useState({ title: '', description: '', imageBase64: null, category: 'Electronics' });
   const [editingProduct, setEditingProduct] = useState(null);
-  const [editProduct, setEditProduct] = useState({ title: '', description: '', imageFile: null, category: 'Electronics' });
+  const [editProduct, setEditProduct] = useState({ title: '', description: '', imageBase64: null, category: 'Electronics' });
   const [imagePreview, setImagePreview] = useState('');
   const [editImagePreview, setEditImagePreview] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
+
+  // Convert file to base64
+  const convertToBase64 = (file) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = error => reject(error);
+    });
+  };
 
   // Product Categories
   const categories = ['Electronics', 'Fashion', 'Home & Garden', 'Sports & Fitness'];  const categoryColors = {
@@ -34,7 +44,7 @@ const MinimalApp = () => {
     'Home & Garden': '#667eea',
     'Sports & Fitness': '#667eea'
   };
-  const API_URL = 'http://localhost:5001/api';
+  const API_URL = 'http://localhost:5000/api';
 
   // Test image loading function
   const testImageLoad = async (imagePath) => {
@@ -186,13 +196,13 @@ const MinimalApp = () => {
     setIsAuthenticated(false);
     setUser(null);
     setProducts([]);
-  };
-  const handleAddProduct = async (e) => {
+  };  const handleAddProduct = async (e) => {
     e.preventDefault();
     
     console.log('Attempting to add product:', newProduct);
     console.log('Current token:', localStorage.getItem('token'));
-      // Basic validation
+    
+    // Basic validation
     if (!newProduct.title.trim()) {
       setError('Product title is required');
       return;
@@ -212,24 +222,30 @@ const MinimalApp = () => {
       setError('Product description must be at least 10 characters long');
       return;
     }
-      try {      // Create FormData for file upload
-      const formData = new FormData();
-      formData.append('title', newProduct.title);
-      formData.append('description', newProduct.description);
-      formData.append('category', newProduct.category);
-      
+    
+    try {
+      // Convert image to base64 if present
+      let imageBase64 = null;
       if (newProduct.imageFile) {
-        formData.append('image', newProduct.imageFile);
+        imageBase64 = await convertToBase64(newProduct.imageFile);
       }
 
-      const response = await axios.post(`${API_URL}/products`, formData, {
+      const productData = {
+        title: newProduct.title,
+        description: newProduct.description,
+        category: newProduct.category,
+        imageBase64: imageBase64
+      };
+
+      const response = await axios.post(`${API_URL}/products`, productData, {
         headers: {
-          'Content-Type': 'multipart/form-data',
+          'Content-Type': 'application/json',
         },
       });
+      
       console.log('Add product response:', response.data);
-        setProducts([...products, response.data.product]);
-      setNewProduct({ title: '', description: '', imageFile: null, category: 'Electronics' });
+      setProducts([...products, response.data.product]);
+      setNewProduct({ title: '', description: '', imageBase64: null, category: 'Electronics' });
       setImagePreview('');
       setShowAddForm(false);
       setError(''); // Clear any previous errors
@@ -239,7 +255,6 @@ const MinimalApp = () => {
       setError(error.response?.data?.message || 'Failed to add product');
     }
   };
-
   const handleUpdateProduct = async (e) => {
     e.preventDefault();
     
@@ -265,30 +280,35 @@ const MinimalApp = () => {
       setError('Product description must be at least 10 characters long');
       return;
     }
-      try {      // Create FormData for file upload
-      const formData = new FormData();
-      formData.append('title', editProduct.title);
-      formData.append('description', editProduct.description);
-      formData.append('category', editProduct.category);
-      
+    
+    try {
+      // Convert image to base64 if new image is selected
+      let imageBase64 = editingProduct.imageBase64; // Keep existing image
       if (editProduct.imageFile) {
-        formData.append('image', editProduct.imageFile);
+        imageBase64 = await convertToBase64(editProduct.imageFile);
       }
 
-      const response = await axios.put(`${API_URL}/products/${editingProduct.id}`, formData, {
+      const productData = {
+        title: editProduct.title,
+        description: editProduct.description,
+        category: editProduct.category,
+        imageBase64: imageBase64
+      };
+
+      const response = await axios.put(`${API_URL}/products/${editingProduct.id}`, productData, {
         headers: {
-          'Content-Type': 'multipart/form-data',
+          'Content-Type': 'application/json',
         },
       });
+      
       console.log('Update product response:', response.data);
       
       // Update the product in the list
       setProducts(products.map(p => 
         p.id === editingProduct.id ? response.data.product : p
       ));
-      
-      setEditingProduct(null);
-      setEditProduct({ title: '', description: '', imageFile: null });
+        setEditingProduct(null);
+      setEditProduct({ title: '', description: '', imageBase64: null });
       setEditImagePreview('');
       setError(''); // Clear any previous errors
     } catch (error) {
@@ -296,7 +316,8 @@ const MinimalApp = () => {
       console.error('Error response:', error.response?.data);
       setError(error.response?.data?.message || 'Failed to update product');
     }
-  };  const startEditProduct = (product) => {
+  };
+  const startEditProduct = (product) => {
     setEditingProduct(product);
     setEditProduct({ 
       title: product.title, 
@@ -310,7 +331,7 @@ const MinimalApp = () => {
 
   const cancelEdit = () => {
     setEditingProduct(null);
-    setEditProduct({ title: '', description: '', imageFile: null });
+    setEditProduct({ title: '', description: '', imageBase64: null });
     setEditImagePreview('');
   };
 
@@ -790,11 +811,13 @@ const MinimalApp = () => {
                   }}>
                     <input 
                       type="file" 
-                      accept="image/*"
-                      onChange={(e) => {
+                      accept="image/*"                      onChange={async (e) => {
                         const file = e.target.files[0];
                         if (file) {
+                          // Store the file temporarily for processing
                           setNewProduct({...newProduct, imageFile: file});
+                          
+                          // Create preview
                           const reader = new FileReader();
                           reader.onload = (event) => setImagePreview(event.target.result);
                           reader.readAsDataURL(file);
@@ -1104,11 +1127,13 @@ const MinimalApp = () => {
                   }}>
                     <input 
                       type="file" 
-                      accept="image/*"
-                      onChange={(e) => {
+                      accept="image/*"                      onChange={async (e) => {
                         const file = e.target.files[0];
                         if (file) {
+                          // Store the file temporarily for processing
                           setEditProduct({...editProduct, imageFile: file});
+                          
+                          // Create preview
                           const reader = new FileReader();
                           reader.onload = (event) => setEditImagePreview(event.target.result);
                           reader.readAsDataURL(file);
@@ -1132,8 +1157,8 @@ const MinimalApp = () => {
                       Drag & drop an image or click to browse
                     </p>
                   </div>
-                  
-                  {(editImagePreview || editingProduct?.image) && (                    <div style={{ 
+                    {(editImagePreview || editingProduct?.imageBase64 || editingProduct?.image) && (
+                    <div style={{ 
                       textAlign: 'center',
                       padding: '15px',
                       backgroundColor: '#ffffff',
@@ -1141,8 +1166,8 @@ const MinimalApp = () => {
                       border: '1px solid #e9ecef'
                     }}>
                       <img 
-                        src={editImagePreview || `http://localhost:5001${editingProduct.image}`} 
-                        alt="Preview" 
+                        src={editImagePreview || editingProduct?.imageBase64 || `http://localhost:5000${editingProduct.image}`} 
+                        alt="Preview"
                         style={{ 
                           maxWidth: '200px', 
                           maxHeight: '150px',                          borderRadius: '8px',
@@ -1314,7 +1339,7 @@ const MinimalApp = () => {
                   }}>
                     {product.category || 'Uncategorized'}
                   </div>                  {/* Product Image */}
-                  {product.image ? (
+                  {(product.imageBase64 || product.image) ? (
                     <div style={{ 
                       marginBottom: '20px', 
                       marginTop: '15px',
@@ -1323,23 +1348,13 @@ const MinimalApp = () => {
                       padding: '15px',
                       borderRadius: '12px',
                       border: '1px solid #e5e7eb'
-                    }}>                      <img 
-                        src={`http://localhost:5001${product.image}`} 
+                    }}>
+                      <img 
+                        src={product.imageBase64 || `http://localhost:5000${product.image}`}
                         alt={product.title}
                         onError={(e) => {
                           console.error('❌ Image failed to load for product:', product.title);
-                          console.error('  - Image path from backend:', product.image);
-                          console.error('  - Full URL attempted:', e.target.src);
-                          
-                          // Try alternative image path formats
-                          const altSrc1 = `http://localhost:5001/uploads/products/${product.image.split('/').pop()}`;
-                          const altSrc2 = `http://localhost:5001${product.image.replace('/uploads/', '/uploads/')}`;
-                          
-                          if (e.target.src !== altSrc1) {
-                            console.log('🔄 Trying alternative path:', altSrc1);
-                            e.target.src = altSrc1;
-                            return;
-                          }
+                          console.error('  - Image source:', e.target.src);
                           
                           // Hide the broken image and show fallback
                           e.target.style.display = 'none';
@@ -1350,7 +1365,11 @@ const MinimalApp = () => {
                         }}
                         onLoad={(e) => {
                           console.log('✅ Image loaded successfully for product:', product.title);
-                          console.log('  - Image URL:', e.target.src);
+                          // Hide fallback if image loads
+                          const fallback = e.target.nextElementSibling;
+                          if (fallback) {
+                            fallback.style.display = 'none';
+                          }
                         }}
                         style={{ 
                           maxWidth: '100%', 
