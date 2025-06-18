@@ -58,13 +58,13 @@ A modern web application built with React frontend and Node.js backend for user 
    cd backend
    npm start
    ```
-   Backend will run on http://localhost:5001
+  
 
 2. **Start the frontend (in a new terminal)**
    ```bash
    npm run dev
    ```
-   Frontend will run on http://localhost:3000
+
 
 ## Demo Credentials
 
